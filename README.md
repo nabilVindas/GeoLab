@@ -70,10 +70,9 @@ This only works inside the container as the atlas is only provided via the conta
 
 To extract the bundles of the ESBA atlas from a subject you first need to compute the tractogram (.tck/.trk/.bundles), register it to MNI space (recommended : image-based with ANTs) and resample it to 15 points per streamline. Then use the ProjectAtlasGeoLab command :
 
-    $ ProjectAtlasGeoLab -i input${format} -o outputDir -nbPoints 15 -nbThreads ${nbThreads}
+    $ ProjectAtlasGeoLab -i input -o outputDir -nbPoints 15 -nbThreads ${nbThreads}
 
-* Replace ${format} with {.trk, .tck, .bundles} according to your tractogram format.
-* input${format} : path to subject's tractogram (.tck/.trk/.bundles).
+* input : path to subject's tractogram (.tck/.trk/.bundles).
 * outputDir : directory where to save the results.
 * ${nbThreads} : number of threads to use for OpenMP.
  
@@ -99,7 +98,7 @@ After that, you can precompute the full atlas (all bundles in one single file), 
     $ fuseAtlas -i atlasDir -o outDirFullAtlas -f ${format}
 
     // Compute atlas neighborhood
-    $ computeNeighborhood -i outDirFullAtlas/fullAtlas${format} -o outDirNeighborhoodAtlas -r referenceImage.nii
+    $ computeNeighborhood -i outDirFullAtlas/fullAtlas -o outDirNeighborhoodAtlas -r referenceImage.nii
 
     // Compute atlas centroids
     $ computeCentroids -i outDirNeighborhoodAtlas -o outDirCentroidsAtlas -r referenceImage.nii -nbPoints ${nbPoints} -nbThreads ${nbThreads} -f ${format}
@@ -115,11 +114,11 @@ After that, you can precompute the full atlas (all bundles in one single file), 
 To extract the bundles of the atlas from a subject you first need to compute the tractogram (.tck/.trk/.bundles), register it to the same space your atlas is (recommended : image-based with ANTs) and resample it to the same number of points per streamline (both the tractogram and the atlas). Then use the ProjectAtlasGeoLab command :
 
 
-    $ ProjectAtlasGeoLab -i input${format} -a atlasDir -ref referenceImage.nii -o outputDir -nbPoints ${nbPoints} -an NeigborhoodAtlas -anc CentroidsAtlas -nbThreads ${nbThreads}
+    $ ProjectAtlasGeoLab -i input -a atlasDir -ref referenceImage.nii -o outputDir -nbPoints ${nbPoints} -an NeigborhoodAtlas -anc CentroidsAtlas -nbThreads ${nbThreads}
 
 
-* Replace ${format} with {.trk, .tck, .bundles} according to your tractogram format.
-* input${format} : subject's tractogram (.tck/.trk/.bundles).
+
+* input : subject's tractogram (.tck/.trk/.bundles).
 * atlasDir : Path to your atlas directory (after analysing it with analyseAtlasBundle).
 * referenceImage.nii : path to the reference .nii where the atlas is.
 * outputDir : directory where to save the results.
