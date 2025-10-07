@@ -30,6 +30,12 @@ The contents of this repository are released under Apache-2.0 license.
 
 ## Quick install
 
+1. Install docker, following the guidelines at https://docs.docker.com 
+2. Pull the docker image : docker pull ghcr.io/nabilvindas/geolab_brainvisa:latest
+3. Launching the container interactively: docker run -it ghcr.io/nabilvindas/geolab_brainvisa /bin/bash
+
+## Install from source
+
 1. Install dependencies.
 2. In ./GeoLab/CMakeLists.txt line 19 ("set(PYTHON_BINARY "/usr/bin/env python3")") replace "/usr/bin/env python3" by your python binary if you are using a virtual environment or if your python binary is not in the default path.
 3. Clone Git repository and compile:
@@ -60,7 +66,9 @@ The contents of this repository are released under Apache-2.0 license.
 
 ## Usage example on ESBA atlas
 
-To extract the bundles of the ESBA atlas from a subject you first need to compute the tractogram (.tck/.trk/.bundles), register it to MNI space (recommended : image-based with ANTs) and resample it to 15 points per fiber. Then use the ProjectAtlasGeoLab command :
+This only works inside the container as the atlas is only provided via the container. However, if you don't want to use the container you can ask for the atlas files at nabil.vindas@cea.fr
+
+To extract the bundles of the ESBA atlas from a subject you first need to compute the tractogram (.tck/.trk/.bundles), register it to MNI space (recommended : image-based with ANTs) and resample it to 15 points per streamline. Then use the ProjectAtlasGeoLab command :
 
     $ ProjectAtlasGeoLab -i input${format} -o outputDir -nbPoints 15 -nbThreads ${nbThreads}
 
@@ -70,11 +78,13 @@ To extract the bundles of the ESBA atlas from a subject you first need to comput
 * ${nbThreads} : number of threads to use for OpenMP.
  
 
-## Usage example on other atlas
+## Tractogram segmentation example
 
-First, you'll need to resample your atlas to a fixed number of points per fiber, if your atlas is in .tck format you can use MRTrix's command tckreample.
+You will need to run the commands inside the container or in your terminal if you installed GeoLab from source.
 
-You'll need to analyse your atlas to get the bundle-specific thresholds, **you can do this step once, then the thresholds will be saved in the .minf files** :
+First, you will need to resample your atlas to a fixed number of points per stramline, if your atlas is in .tck format you can use MRTrix's command tckreample.
+
+You will also need to analyse your atlas to get the bundle-specific thresholds, **you can do this step once, then the thresholds will be saved in the .minf files** :
 
     $ analyseAtlasBundle.py -i atlasDir -f ${format} -r referenceImage.nii
 
@@ -83,7 +93,7 @@ You'll need to analyse your atlas to get the bundle-specific thresholds, **you c
 * referenceImage.nii : path to the reference .nii where the atlas is.
 
 
-You'll also need to precompute the full atlas (all bundles in one single file), the atlas neighborhood and the atlas centroids :
+After that, you can precompute the full atlas (all bundles in one single file), the atlas neighborhood and the atlas centroids :
 
     // Compute full atlas
     $ fuseAtlas -i atlasDir -o outDirFullAtlas -f ${format}
@@ -102,10 +112,10 @@ You'll also need to precompute the full atlas (all bundles in one single file), 
 * outDirCentroidsAtlas : output directory of command computeCentroids.
 * ${nbThreads} : number of threads to use for OpenMP.
 
+To extract the bundles of the atlas from a subject you first need to compute the tractogram (.tck/.trk/.bundles), register it to the same space your atlas is (recommended : image-based with ANTs) and resample it to the same number of points per streamline (both the tractogram and the atlas). Then use the ProjectAtlasGeoLab command :
 
-Then use the ProjectAtlasGeoLab command :
 
-    $ ProjectAtlasGeoLab -i input${format} -a atlasDir -ref referenceImage.nii -o outputDir -nbPoints 15 -an NeigborhoodAtlas -anc CentroidsAtlas -nbThreads ${nbThreads}
+    $ ProjectAtlasGeoLab -i input${format} -a atlasDir -ref referenceImage.nii -o outputDir -nbPoints ${nbPoints} -an NeigborhoodAtlas -anc CentroidsAtlas -nbThreads ${nbThreads}
 
 
 * Replace ${format} with {.trk, .tck, .bundles} according to your tractogram format.
@@ -115,27 +125,31 @@ Then use the ProjectAtlasGeoLab command :
 * outputDir : directory where to save the results.
 * NeigborhoodAtlas : outDirNeighborhoodAtlas.
 * CentroidsAtlas : outDirCentroidsAtlas.
+* ${nbPoints} : number of points per streamline
 * ${nbThreads} : number of threads to use for OpenMP.
+
+
+
 
 
 ## To compute the scores of prediction on labelled data
 
 Your labelled data should be in the form of two files :
 
-* .txt -> labels for each fiber in the form of :
+* .txt -> labels for each streamline in the form of :
 * 
-    `fiber_index_k : label_i`
+    `streamline_index_k : label_i`
     
     `           ...           `
     
-    `fiber_index_l : label_j`
+    `streamline_index_l : label_j`
         
   With : 
     * label_i, ..., label_j integers.
             
-    * fiber_index_l is the index of the fiber in the tractogram used as input for segmentation.
+    * streamline_index_l is the index of the streamline in the tractogram used as input for segmentation.
         
-  If a fiber has multiple labels you just need to have several lines for that fiber.
+  If a streamline has multiple labels you just need to have several lines for that streamline.
         
         
 * .dict -> dictionary for the labels in the form of :
@@ -192,9 +206,6 @@ With :
   * outDir : output directory where to save the results.
 
 
-## Container
-
-Currently, GeoLab is available as a docker container upon request (email : nabil.vindas@cea.fr).
 
 ## Access to Atlases
 
